@@ -1,0 +1,264 @@
+{% extends 'df_goods/base.html' %}
+{% block title %}天天生鲜-购物车{% endblock title %}
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/df_user/css/reset.css">
+	<link rel="stylesheet" type="text/css" href="/static/df_user/css/main.css">
+    <script type="text/javascript" src="/static/df_user/js/jquery-1.12.4.min.js"></script>
+    <script>
+    $(function () {
+        {#修改合计的价格#}
+        function hsum1() {
+            $sum = 0
+            $sum  = parseFloat($sum)
+            $('.cart_list_td').each(function () {
+                {#获取价格#}
+                $money = parseFloat($(this).children('.col05').text())
+                {#获取数量#}
+                $num = parseFloat($(this).children('.col06').children('.num_add').children('.num_show').val())
+
+                $sum += ($money*$num)
+            })
+            $('.settlements').children('.col03').children('em').text($sum.toFixed(2) + '元')
+        }
+        {#修改小计的价格#}
+        function hsum(){
+            $('.cart_list_td').each(function () {
+                {#获取价格#}
+                $money = parseFloat($(this).children('.col05').text())
+                {#获取数量#}
+                $num = $(this).children('.col06').children('.num_add').children('.num_show').val()
+                {#修改小计的价格#}
+                $(this).children('.col07').text(($money*$num).toFixed(2) + '元')
+                hsum1();
+
+            });
+        }
+        hsum();
+
+        //加入加号和减号事件的的处理
+        $('.add').click(function () {
+            {#获取当前数量#}
+            $num = parseInt($(this).next().val())
+            //当前数量加1
+            $num += 1
+
+            //修改数据库的购物车内容
+            //获取col08元素下的a元素的id
+            $id = $(this).parent().parent().siblings('.col08').children('a').prop('id')
+            $.ajax('/cart/update_item'+$id+'-'+$num+'/')
+
+
+            $(this).next().val($num)
+            hsum()
+
+            //修改总计
+            quantity_of_commodity()
+        })
+
+        $('.minus').click(function () {
+            {#获取当前数量#}
+            $num = parseInt($(this).prev().val())
+            //当前数量减1
+            $num -= 1
+
+            if ($num <= 0){
+                $num = 1
+            }
+
+            //修改数据库的购物车内容
+            //获取col08元素下的a元素的id
+            $id = $(this).parent().parent().siblings('.col08').children('a').prop('id')
+            $.ajax('/cart/update_item'+$id+'-'+$num+'/')
+
+
+            $(this).prev().val($num)
+
+            hsum()
+
+            //修改总计
+            quantity_of_commodity()
+        })
+
+        //手动输入数量
+        $('.num_show').blur(function () {
+            //获取当前输入的数量
+            $num  = parseInt($(this).val())
+            //判断是否输入的小于1
+            if($num < 1) {
+                alert('请输入正确的数字')
+            }else {
+
+
+                //修改数据库的购物车内容
+                //获取col08元素下的a元素的id
+                $id = $(this).parent().parent().siblings('.col08').children('a').prop('id')
+                $.ajax('/cart/update_item'+$id+'-'+$num+'/')
+
+                $(this).prev().val($num)
+                hsum();
+                //修改总计
+                quantity_of_commodity()
+            }
+
+        })
+
+        //删除操作
+        $('.col08').children().click(function () {
+            $.ajax('/cart/remove'+$(this).attr('id')+'/')
+            $(this).parent().parent().remove()
+            hsum()
+            quantity_of_commodity()
+
+        })
+
+        //修改购物车页面商品的数量
+        function Car_lengtn(){
+            //获取商品数量
+            $car_length = $('.cart_list_td').length;
+            //查找到需要修改的元素
+            $em  = $('.total_count em')
+            $len = $('.settlements .col03 b')
+            $em.html($car_length)
+            $len.html($car_length)
+        }
+        Car_lengtn();
+
+        //全选全消功能
+        //查找全选按钮
+        $all = $('#checkbox_all')
+        $all.click(function () {
+            //获取全选按钮的状态
+            $check = $(this).prop('checked')
+            //修改购物车列表的选中状态
+            //checkbox组件，checked组件状态，是否被选中
+            $(":checkbox:not(#checkbox_all)").prop('checked',$check)
+            quantity_of_commodity()
+
+        });
+
+        //商品选中取消，全选按钮进行改变
+        $(":checkbox:not(#checkbox_all)").click(function () {
+           //判断是勾选还是勾除
+           if($(this).prop('checked') == false){
+               //如果是勾除，则把全选按钮的勾也去除
+               $all.prop('checked',false)
+           }else {
+               //如果是勾上，判断是否有未勾选的
+               //$(":checked")查找所有被选中的checkbox
+               if($(":checked").length == $(":checkbox:not(#checkbox_all)").length){
+                   $all.prop('checked',true)
+               }
+           }
+           quantity_of_commodity()
+
+        });
+
+        //修改选中商品时，下方价格总计和数量总计
+        function quantity_of_commodity() {
+            //查找显示商品数量的元素
+            $('.settlements>.col03>b').html($(":checked:not(#checkbox_all)").length)
+            //计算总价
+            $sum = 0
+            //遍历购物车列表
+            $(":checkbox:not(#checkbox_all)").each(function () {
+                //对选中的商品价格进行相加
+                if($(this).prop('checked')){
+                    //获取父元素的class为col07的兄弟元素的数字
+                    $num = parseFloat($(this).parent().siblings('.col07').html()).toFixed(2)*100
+
+                    $sum += $num
+
+                }
+            })
+
+            $('.settlements>.col03>em').html(($sum/100).toFixed(2) + '元')
+        };
+
+
+        //绑定提交订单按钮的事件
+        $('#settlement').click(function () {
+            //遍历购物车列表
+            $url = '/order/'
+            $(":checkbox:not(#checkbox_all)").each(function (index,value) {
+                //对选中的商品进行处理
+                if($(this).prop('checked')){
+
+                    //获取商品的id
+                    //获取父元素的class为col08的兄弟元素的子元素的id
+                    $id = ($(this).parent().siblings('.col08').children().prop('id')).split('-')[1]
+                    {#获取商品数量#}
+                    $num = $(this).parent().siblings('.col06').children('.num_add').children('input').val()
+                    if(index == 0){
+                        $url = $url + '?goods_id=' + $id + '&goos_count=' + $num
+                    }else
+                    {
+                        $url = $url + '&goods_id=' + $id + '&goos_count=' + $num
+                    }
+
+                }
+            })
+            {#获取总价#}
+            $sum = parseFloat($('.settlements>.col03>em').html())
+            $url += '&sum=' + $sum
+
+            $(this).attr('href',$url)
+            return true
+        });
+
+    });
+    </script>
+{% endblock head %}
+{% block body %}
+
+
+	<div class="search_bar clearfix">
+		<a href="/" class="logo fl"><img src="/static/df_user/images/logo.png"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;购物车</div>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>		
+	</div>
+
+	<div class="total_count">全部商品<em>2</em>件</div>	
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+
+
+    {% for i in cart %}
+
+        <ul class="cart_list_td clearfix">
+            <li class="col01"><input id="check_i" checked   type="checkbox" name="" ></li>
+            <li class="col02"><img src="/static/{{ i.1.gimage }}"></li>
+            <li class="col03">{{ i.1.gtitle }}<br><em>{{ i.1.gprice }}元/500g</em></li>
+            <li class="col04">{{ i.1.gcompany }}</li>
+            <li class="col05">{{ i.1.gprice }}元</li>
+            <li class="col06">
+                <div class="num_add">
+
+                    <a href="javascript:;" class="add fl">+</a>
+                    <input type="text" class="num_show fl" value="{{ i.0.count }}">
+                    <a href="javascript:;" class="minus fl">-</a>
+                </div>
+            </li>
+            <li class="col07">{{ i.1.gprice }}元</li>
+            <li class="col08"><a href="javascript:;" id="{{ i.0.user_id }}-{{ i.0.goods_id }}">删除</a></li>
+	    </ul>
+    {% endfor %}
+
+
+	
+
+	<ul class="settlements">
+		<li class="col01"><input type="checkbox" checked name="" id="checkbox_all"></li>
+		<li class="col02">全选</li>
+		<li class="col03">合计(不含运费)：<span>¥</span><em>0</em><br>共计<b>{{ request.session.shopping }}</b>件商品</li>
+		<li class="col04"><a href="/order/" id="settlement" >去结算</a></li>
+	</ul>
+{% endblock body %}

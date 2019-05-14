@@ -1,0 +1,225 @@
+{% extends 'df_goods/base.html' %}
+{% block title %}天天生鲜-商品详情{% endblock title %}
+{% block head %}
+	<link rel="stylesheet" type="text/css" href="/static/df_user/css/reset.css">
+	<link rel="stylesheet" type="text/css" href="/static/df_user/css/main.css">
+	<script type="text/javascript" src="/static/df_user/js/jquery-1.12.4.min.js"></script>
+	<script type="text/javascript">
+		$(function () {
+			var $add_x = $('#add_cart').offset().top;
+			var $add_y = $('#add_cart').offset().left;
+
+			var $to_x = $('#show_count').offset().top;
+			var $to_y = $('#show_count').offset().left;
+
+			$(".add_jump").css({'left':$add_y+80,'top':$add_x+10,'display':'block'})
+			$('#add_cart').click(function(){
+				$(".add_jump").stop().animate({
+					'left': $to_y+7,
+					'top': $to_x+7,
+                    'animate-duration':'2s'},
+
+					"fast", function() {
+						$(".add_jump").fadeOut('fast',function(){
+							{#$('#show_count').html(parseInt($('#show_count').html())+1);#}
+                            $.get('/user/car_len/',function (count) {
+                                //查找元素
+                                $('#show_count').html(count.carlen)
+
+                            });
+						});
+
+				});
+			})
+
+			//查找+号和-号
+			var $jia = $('#jia')
+			var $jian = $('#jian')
+			//查找数量
+			var $shuliang = $('.num_show')
+			//加号绑定单击事件
+			$jia.click(function () {
+				//获取当前的数量
+				$j = parseInt($shuliang.val())
+				//让输出框的数量加1
+				$shuliang.val($j + 1)
+				//触发输入框的失去焦点事件
+				$shuliang.blur()
+			})
+			$jian.click(function () {
+				$j = parseInt($shuliang.val())
+				//判断输入框的数量是否过小
+				if($j <= 1) {
+					$shuliang.val(1)
+				}else {
+					$shuliang.val($j-1)
+				}
+				$shuliang.blur()
+			})
+			$shuliang.blur(function () {
+				//获取自己的值
+				$j = parseInt($(this).val())
+				//获取单价
+				$danj = parseFloat($('#gid').text())
+				//修改总价的显示，toFixed，小数点后显示多少位
+				$('#total').text(($j * $danj).toFixed(2) + '元')
+			})
+
+
+            //加入购物车按钮
+            //获取加入购物车元素
+            $add_cart = $('#add_cart')
+            //绑定加入购物车事件
+            $add_cart.click(function () {
+
+                {#判断是否登录        判断login_btn的内容是否存在登录字段#}
+                if ($('.login_btn').text().indexOf('登录')>=1){
+                    alert('请登录后购买')
+                    location.href('/user/login/')
+                    return
+                }
+
+
+                {#alert(1)#}
+                //获取购买的数量
+                $num = $shuliang.val()
+                //获取商品的id
+                $id = {{ goods.id }}
+                //发送ajax请求
+                $.get('/cart/add_cart_handle-' + $id + '-' + $num,function (data) {
+                    return data
+                })
+
+            });
+
+
+			{#//修改购物车数量#}
+            {#$('.add_cart').click(#}
+            {##}
+            {#    setTimeout(function () {#}
+                    {#alert(1)#}
+            {#        $.get('/user/car_len/',function (count) {#}
+            {#            //查找元素#}
+            {#            $('#show_count').html(count.carlen)#}
+            {#            alert(count.carlen)#}
+            {#        });#}
+            {#    },600)#}
+            {#)#}
+
+		})
+
+	</script>
+{% endblock head %}
+
+
+{% block body %}
+
+
+	<div class="search_bar clearfix">
+		<a href="/" class="logo fl"><img src="/static/df_user/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="/cart/" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl" id="show_count">{{ cartlen }}</div>
+		</div>
+	</div>
+
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>	
+				<span></span>			
+				<ul class="subnav">
+					<li><a href="#" class="fruit">新鲜水果</a></li>
+					<li><a href="#" class="seafood">海鲜水产</a></li>
+					<li><a href="#" class="meet">猪牛羊肉</a></li>
+					<li><a href="#" class="egg">禽类蛋品</a></li>
+					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
+					<li><a href="#" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">新鲜水果</a>
+		<span>></span>
+		<a href="#">商品详情</a>
+	</div>
+
+	<div class="goods_detail_con clearfix">
+		<div class="goods_detail_pic fl"><img style="width: 350px;height: 350px;" src="/static/{{goods.gimage}}"></div>
+
+		<div class="goods_detail_list fr">
+			<h3>{{goods.gtitle}}</h3>
+			<p>{{goods.gbi}}</p>
+			<div class="prize_bar">
+				<span class="show_pirze">¥<em id="gid">{{goods.gprice}}</em></span>
+				<span class="show_unit">单  位：{{goods.gcompany}}</span>
+			</div>
+			<div class="goods_num clearfix">
+				<div class="num_name fl">数 量：</div>
+				<div class="num_add fl">
+					<input type="text" class="num_show fl" value="1">
+					<a href="javascript:;" id="jia" class="add fr">+</a>
+					<a href="javascript:;" id="jian" class="minus fr">-</a>
+				</div> 
+			</div>
+			<div class="total">总价：<em id="total">{{goods.gprice}}</em></div>
+			<div class="operate_btn">
+				<a href="/cart/add_cart_handle-{{ goods.id }}-1" class="buy_btn">立即购买</a>
+				<a href="javascript:;" class="add_cart" id="add_cart">加入购物车</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+					{% for i in type %}
+						<li>
+							<a href="/{{i.id}}"><img src="/static/{{i.gimage}}"></a>
+							<h4><a href="/{{i.id}}">{{i.gtitle}}</a></h4>
+							<div class="prize">￥{{i.gprice}}</div>
+						</li>
+					{% endfor %}
+
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<ul class="detail_tab clearfix">
+				<li class="active">商品介绍</li>
+				<li>评论</li>
+			</ul>
+
+			<div class="tab_content">
+				<dt>商品详情：</dt>
+				<dd>
+					{{goods.gcontent|safe}}
+				</dd>
+
+
+			</div>
+
+		</div>
+        <div class="add_jump"></div>
+	</div>
+
+
+{% endblock body%}
