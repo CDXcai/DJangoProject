@@ -1,5 +1,30 @@
 {% extends 'df_goods/base.html' %}
 {% block title %}天天生鲜-用户中心{% endblock title%}
+{% block head %}
+    <script type="text/javascript" src="/static/df_user/js/jquery-1.12.4.min.js"></script>
+    <script>
+        $(function () {
+            $('.isplay').click(
+                function () {
+                    // 查找订单号
+                    $content = $(this).parent().parent().parent().parent().prev().children('.col02')
+                    // 获取订单数字
+                    $order_id  = $content.html().substring(1).substring(1).substring(1).substring(1)
+                    $order_id = parseInt($order_id)
+                    alert($order_id)
+                    //发送ajax请求//让订单处于已支付状态
+                        $.post('/user/isplay/',{play_id:$order_id},function (date) {
+                        window.location.reload()
+                    })
+                }
+            )
+
+
+
+        })
+    </script>
+{% endblock head %}
+
 {% block body %}
 
 
@@ -66,13 +91,14 @@
                                     {{ '未支付' }}
                                 {% endif %}
                             </td>
-							<td width="15%"><a href="#" class="oper_btn">
-                                {% if i.0.oispay %}
-					                {{ '查看物流' }}
-					            {% else %}
-                                    {{ '去付款' }}
-                                {% endif %}
-                            </a></td>
+                            {% if i.0.oispay %}
+                                <td width="15%"><a href="#" class="oper_btn">查看物流
+                                </a></td>
+                            {% else %}
+                                <td width="15%"><a href="#" id="isplay" class="oper_btn isplay">去付款
+                                </a></td>
+                            {% endif %}
+
 
 
 						</tr>

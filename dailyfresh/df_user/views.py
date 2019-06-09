@@ -8,7 +8,7 @@ from user_mod import *
 from df_cart.models import *
 from df_user.models import UserInfo
 from df_order.models import order_info
-
+from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 import time
 import sys
@@ -236,3 +236,15 @@ def car_len(request):
         CartList = len(CartInfo.objects.filter(user_id=User_id))
         print CartList
     return JsonResponse({'carlen':CartList})
+
+# 点击购买就让订单处于已购买状态
+@csrf_exempt
+def isplay(request):
+    # 获取订单编号
+    play_id = request.POST['play_id']
+    # 修改订单的支付状态
+    order = order_info.objects.get(id = play_id)
+    # 修改为已支付状态
+    order.oispay = True
+    order.save()
+    return JsonResponse({'state':True})

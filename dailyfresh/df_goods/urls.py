@@ -4,4 +4,5 @@ urlpatterns = [
     url(r'^$',views.index),
     url(r'^list(\d+)-(\d+)-(\d+)/$',views.list),
     url(r'^(\d+)$',views.details),
+
 ]

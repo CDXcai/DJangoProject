@@ -14,4 +14,5 @@ urlpatterns=[
     url(r'^order/(\d*)$',views.order),
     url(r'^logout/$',views.logout),
     url(r'^car_len/$',views.car_len),
+    url(r'^isplay/$',views.isplay),
 ]

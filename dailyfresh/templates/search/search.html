@@ -1,0 +1,137 @@
+{% extends 'df_goods/base.html' %}
+{% block title %}
+    天天生鲜-商品列表
+{% endblock title %}
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="/static/df_user/css/reset.css">
+	<link rel="stylesheet" type="text/css" href="/static/df_user/css/main.css">
+    <script type="text/javascript" src="/static/df_user/js/jquery-1.12.4.min.js"></script>
+    <script >
+        $(function () {
+            $('.add_goods').click(function () {
+               //add_cart_handle-(\d+)-(\d+)
+                //查找前面有商品编号的a元素的id
+                $id = $(this).parent().prevAll('a').prop('id')
+                {#console.log($id)#}
+                $.get('/cart/add_cart_handle-'+$id+'-1',function (date) {
+                    console.log(date.cart_list)
+                    $('.guest_cart>.goods_count').html(date.cart_list)
+                })
+            });
+        });
+    </script>
+{% endblock head %}
+
+
+{% block body%}
+	<div class="search_bar clearfix">
+		<a href="/" class="logo fl"><img src="/static/df_user/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="/cart/" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl">{{ cartlen }}</div>
+		</div>
+	</div>
+
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>
+				<span></span>
+				<ul class="subnav">
+					<li><a href="/#model01" class="fruit">新鲜水果</a></li>
+                    <li><a href="/#model02" class="seafood">海鲜水产</a></li>
+                    <li><a href="/#model03" class="meet">猪牛羊肉</a></li>
+                    <li><a href="/#model04" class="egg">禽类蛋品</a></li>
+                    <li><a href="/#model05" class="vegetables">新鲜蔬菜</a></li>
+                    <li><a href="/#model06" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">新鲜水果</a>
+	</div>
+
+	<div class="main_wrap clearfix">
+
+		<div class="r_wrap fr clearfix">
+			<div class="sort_bar">
+
+				<a href="/list{{id}}-1-1" {% if tclick == "1" %}class="active"{% endif %}>默认</a>
+				<a href="/list{{id}}-1-2" {% if tclick == "2" %}class="active"{% endif %}>价格</a>
+				<a href="/list{{id}}-1-3" {% if tclick == "3" %}class="active"{% endif %}>人气</a>
+			</div>
+
+			<ul class="goods_type_list clearfix">
+            {% if query %}
+
+
+				{% for i in page.object_list %}
+					<li>
+						<a href="/{{i.id}}" id="{{ i.id }}"><img src="/static/{{i.gimage}}"></a>
+						<h4><a href="/{{i.id}}">{{i.gtitle}}</a></h4>
+						<div class="operate">
+							<span class="prize">￥{{i.gprice}}</span>
+							<span class="unit">{{i.gprice}}/{{i.gcompany}}</span>
+							<a href="javascript:;" class="add_goods" title="加入购物车"></a>
+						</div>
+					</li>
+				{% endfor %}
+            {% endif %}
+			</ul>
+
+			<div class="pagenation">
+            {% if query %}
+
+
+                {% if page.has_previous %}
+                    <a href="/search/?q={{ query }}&amp;page={{ page.previous_page_number }}">
+                {% endif %}&laquo; 上一页
+                {% if page.has_previous %}</a>
+                {% endif %}
+                {% if page.has_next %}
+                    <a href="/search/?q={{ query }}&amp;page={{ page.next_page_number }}">
+                {% endif %}下一页 &raquo;
+                {% if page.has_next %}</a>
+                {% endif %}
+
+
+{#				{% if pa.has_previous %}#}
+{#					<a href="/list{{id}}-{{pa.previous_page_number}}-{{tclick}}">&lt;上一页</a>#}
+{#				{% endif %}#}
+{#				{% for i in pa.paginator.page_range %}#}
+{#					{% if i == pa.number %}#}
+{#						<a href="/list{{id}}-{{i}}-{{tclick}}/" class="active">{{i}}</a>#}
+{#					{% else %}#}
+{#						<a href="/list{{id}}-{{i}}-{{tclick}}/" class="">{{i}}</a>#}
+{#					{% endif %}#}
+{##}
+{#				{% endfor %}#}
+{#				{% if pa.has_next %}#}
+{#					<a href="/list{{id}}-{{pa.next_page_number}}-{{tclick}}/">下一页&gt;</a>#}
+{#				{% endif %}#}
+
+
+
+
+            {% endif %}
+			</div>
+
+		</div>
+	</div>
+
+	{% endblock body%}
